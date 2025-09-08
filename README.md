@@ -1,3 +1,5 @@
+golang rewrite of python pcat
+
 # pcat - find Project/ | xargs cat
 
 A tool to print source code from multiple directories and files in markdown format.

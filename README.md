@@ -1,4 +1,4 @@
-golang rewrite of python pcat
+golang rewrite of python [pcat](https://github.com/sokinpui/pcat)
 
 # pcat - find Project/ | xargs cat
 

@@ -21,7 +21,7 @@ func main() {
 
 func run() error {
 	var extensions, excludePatterns []string
-	var withLineNumbers, hidden, listOnly, toClipboard bool
+	var withLineNumbers, hidden, listOnly, toClipboard, noHeader bool
 
 	pflag.StringSliceVarP(&extensions, "extension", "e", nil, "Filter by file extensions (e.g., 'py', 'js'). Can be repeated.")
 	pflag.StringSliceVar(&excludePatterns, "not", nil, "Exclude files matching glob patterns. Can be repeated.")
@@ -29,6 +29,7 @@ func run() error {
 	pflag.BoolVar(&hidden, "hidden", false, "Include hidden files and directories.")
 	pflag.BoolVarP(&listOnly, "list", "l", false, "List the files that would be processed, without printing content.")
 	pflag.BoolVarP(&toClipboard, "clipboard", "c", false, "Copy the output to the clipboard instead of printing to stdout.")
+	pflag.BoolVarP(&noHeader, "no-header", "N", false, "Do not print the header and footer.")
 
 	pflag.Usage = printUsage
 	pflag.Parse()
@@ -69,6 +70,7 @@ func run() error {
 		Hidden:          hidden,
 		ListOnly:        listOnly,
 		ToClipboard:     toClipboard,
+		NoHeader:        noHeader,
 	}
 
 	app := pcat.New(config)

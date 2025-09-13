@@ -21,6 +21,7 @@ type Config struct {
 	Hidden          bool
 	ListOnly        bool
 	ToClipboard     bool
+	NoHeader        bool
 }
 
 type App struct {
@@ -175,7 +176,9 @@ func (a *App) formatOutput(files []string) (string, error) {
 	}
 
 	var out strings.Builder
-	out.WriteString("# PROVIED DOCUMENTS \n\n")
+	if !a.config.NoHeader {
+		out.WriteString("# PROJECT SOURCE CODE\n\n")
+	}
 	filesFormatted := 0
 
 	for _, file := range files {
@@ -211,6 +214,10 @@ func (a *App) formatOutput(files []string) (string, error) {
 
 	if filesFormatted == 0 {
 		return "", nil
+	}
+
+	if a.config.NoHeader {
+		return strings.TrimRight(out.String(), "\n") + "\n", nil
 	}
 
 	result := strings.TrimSuffix(out.String(), "\n")

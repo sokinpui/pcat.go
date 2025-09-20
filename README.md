@@ -32,7 +32,7 @@ Examples:
 # Installatoin
 
 ```
-go install github.com/sokinpui/pcat.go@latest
+go install github.com/sokinpui/pcat.go/cmd/pcat@latest
 ```
 
 locally:

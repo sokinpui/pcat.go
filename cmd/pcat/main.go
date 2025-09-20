@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"pcat/internal/clipboard"
-	"pcat/internal/pcat"
+	"github.com/sokinpui/pcat.go/internal/clipboard"
+	"github.com/sokinpui/pcat.go/internal/pcat"
 )
 
 func main() {

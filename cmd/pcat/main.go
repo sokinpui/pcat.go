@@ -39,7 +39,7 @@ func run() error {
 		return err
 	}
 
-	if len(paths) == 0 {
+	if paths == nil {
 		pflag.Usage()
 		return fmt.Errorf("no paths provided")
 	}
@@ -100,7 +100,7 @@ func getPaths(args []string) ([]string, error) {
 
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
-		var paths []string
+		paths := make([]string, 0)
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())

@@ -40,8 +40,7 @@ func run() error {
 	}
 
 	if paths == nil {
-		pflag.Usage()
-		return fmt.Errorf("no paths provided")
+		paths = []string{"."}
 	}
 
 	var directories, specificFiles []string

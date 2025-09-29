@@ -24,6 +24,61 @@ type Config struct {
 	NoHeader        bool
 }
 
+// Read reads a list of files and returns a formatted string with their contents.
+func Read(files []string, config Config) (string, error) {
+	if len(files) == 0 {
+		return "", nil
+	}
+
+	var out strings.Builder
+	if !config.NoHeader {
+		out.WriteString("# PROJECT SOURCE CODE\n\n")
+	}
+	filesFormatted := 0
+
+	for _, file := range files {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Could not read file %s: %v\n", file, err)
+			continue
+		}
+		filesFormatted++
+
+		out.WriteString(fmt.Sprintf("`%s`\n", file))
+
+		ext := strings.TrimPrefix(filepath.Ext(file), ".")
+		if ext == "" {
+			ext = "txt"
+		}
+		out.WriteString(fmt.Sprintf("```%s\n", ext))
+
+		if config.WithLineNumbers {
+			scanner := bufio.NewScanner(strings.NewReader(string(content)))
+			for i := 1; scanner.Scan(); i++ {
+				out.WriteString(fmt.Sprintf("%4d | %s\n", i, scanner.Text()))
+			}
+		} else {
+			out.Write(content)
+		}
+
+		if len(content) > 0 && !strings.HasSuffix(string(content), "\n") {
+			out.WriteString("\n")
+		}
+		out.WriteString("```\n\n")
+	}
+
+	if filesFormatted == 0 {
+		return "", nil
+	}
+
+	if config.NoHeader {
+		return strings.TrimRight(out.String(), "\n") + "\n", nil
+	}
+
+	result := strings.TrimSuffix(out.String(), "\n")
+	return result + "\n---\n", nil
+}
+
 type App struct {
 	config Config
 }
@@ -171,55 +226,5 @@ func (a *App) filterExcluded(paths []string) ([]string, error) {
 }
 
 func (a *App) formatOutput(files []string) (string, error) {
-	if len(files) == 0 {
-		return "", nil
-	}
-
-	var out strings.Builder
-	if !a.config.NoHeader {
-		out.WriteString("# PROJECT SOURCE CODE\n\n")
-	}
-	filesFormatted := 0
-
-	for _, file := range files {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Could not read file %s: %v\n", file, err)
-			continue
-		}
-		filesFormatted++
-
-		out.WriteString(fmt.Sprintf("`%s`\n", file))
-
-		ext := strings.TrimPrefix(filepath.Ext(file), ".")
-		if ext == "" {
-			ext = "txt"
-		}
-		out.WriteString(fmt.Sprintf("```%s\n", ext))
-
-		if a.config.WithLineNumbers {
-			scanner := bufio.NewScanner(strings.NewReader(string(content)))
-			for i := 1; scanner.Scan(); i++ {
-				out.WriteString(fmt.Sprintf("%4d | %s\n", i, scanner.Text()))
-			}
-		} else {
-			out.Write(content)
-		}
-
-		if len(content) > 0 && !strings.HasSuffix(string(content), "\n") {
-			out.WriteString("\n")
-		}
-		out.WriteString("```\n\n")
-	}
-
-	if filesFormatted == 0 {
-		return "", nil
-	}
-
-	if a.config.NoHeader {
-		return strings.TrimRight(out.String(), "\n") + "\n", nil
-	}
-
-	result := strings.TrimSuffix(out.String(), "\n")
-	return result + "\n---\n", nil
+	return Read(files, a.config)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/sokinpui/pcat.go/internal/clipboard"
-	"github.com/sokinpui/pcat.go/internal/pcat"
+	"github.com/sokinpui/pcat.go/pcat"
 )
 
 func main() {

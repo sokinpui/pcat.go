@@ -23,7 +23,7 @@ func run() error {
 	var extensions, excludePatterns []string
 	var withLineNumbers, hidden, listOnly, toClipboard, noHeader bool
 
-	pflag.StringSliceVarP(&extensions, "extension", "e", nil, "Filter by file extensions (e.g., 'py', 'js'). Can be repeated.")
+	pflag.StringSliceVarP(&extensions, "extension", "e", nil, "Filter by file extensions (e.g., 'py', 'js' or 'py js'). Can be repeated.")
 	pflag.StringSliceVar(&excludePatterns, "not", nil, "Exclude files matching glob patterns. Can be repeated.")
 	pflag.BoolVarP(&withLineNumbers, "with-line-numbers", "n", false, "Include line numbers for each file.")
 	pflag.BoolVar(&hidden, "hidden", false, "Include hidden files and directories.")
@@ -33,6 +33,12 @@ func run() error {
 
 	pflag.Usage = printUsage
 	pflag.Parse()
+
+	var processedExtensions []string
+	for _, ext := range extensions {
+		processedExtensions = append(processedExtensions, strings.Fields(ext)...)
+	}
+	extensions = processedExtensions
 
 	paths, err := getPaths(pflag.Args())
 	if err != nil {
@@ -127,7 +133,7 @@ func printUsage() {
 	pflag.PrintDefaults()
 	fmt.Fprintln(out, "\nExamples:")
 	fmt.Fprintln(out, "  pcat ./src ./README.md    # Process all files in ./src and the specific file")
-	fmt.Fprintln(out, "  pcat ./src -e py -e js     # Process .py and .js files in ./src")
+	fmt.Fprintln(out, "  pcat ./src -e 'py js'     # Process .py and .js files in ./src")
 	fmt.Fprintln(out, "  pcat . --hidden           # Process all files in current dir, including hidden ones")
 	fmt.Fprintln(out, "  pcat ./src --not '*_test.py' # Exclude test files")
 	fmt.Fprintln(out, "  fd . -e py | pcat         # Process python files found by fd from stdin")

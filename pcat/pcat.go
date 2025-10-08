@@ -43,6 +43,7 @@ func Read(files []string, config Config) (string, error) {
 			continue
 		}
 		if bytes.Contains(content, []byte{0}) {
+			fmt.Fprintf(os.Stderr, "Warning: skipping binary file %s\n", file)
 			continue
 		}
 		filesFormatted++

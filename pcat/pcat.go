@@ -2,6 +2,7 @@ package pcat
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -39,7 +40,9 @@ func Read(files []string, config Config) (string, error) {
 	for _, file := range files {
 		content, err := os.ReadFile(file)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Could not read file %s: %v\n", file, err)
+			continue
+		}
+		if bytes.Contains(content, []byte{0}) {
 			continue
 		}
 		filesFormatted++

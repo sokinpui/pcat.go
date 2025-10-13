@@ -6,41 +6,97 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/pflag"
-
 	"github.com/sokinpui/pcat.go/internal/clipboard"
 	"github.com/sokinpui/pcat.go/pcat"
+	"github.com/spf13/cobra"
 )
 
+var (
+	extensions, excludePatterns []string
+	withLineNumbers, hidden, listOnly, toClipboard, noHeader bool
+	completionShell                                          string
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "pcat [PATH...]",
+	Short: "Concatenate and print files from specified paths (files and directories).",
+	Long: `Concatenate and print files from specified paths (files and directories).
+If no paths are provided, paths are read from stdin.`,
+	Example: `  pcat ./src ./README.md    # Process all files in ./src and the specific file
+  pcat ./src -e 'py js'     # Process .py and .js files in ./src
+  pcat . --hidden           # Process all files in current dir, including hidden ones
+  pcat ./src --not '*_test.py' # Exclude test files
+  fd . -e py | pcat         # Process python files found by fd from stdin`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if completionShell != "" {
+			switch completionShell {
+			case "bash":
+				return cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				return cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				return cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				return cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			default:
+				return fmt.Errorf("unsupported shell for completion: %s. Must be one of bash, zsh, fish, or powershell", completionShell)
+			}
+		}
+		return run(args)
+	},
+}
+
+func getPaths(args []string) ([]string, error) {
+	if len(args) > 0 {
+		return args, nil
+	}
+
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		paths := make([]string, 0)
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line != "" {
+				paths = append(paths, line)
+			}
+		}
+		return paths, scanner.Err()
+	}
+
+	return nil, nil
+}
+
+func isBrokenPipe(err error) bool {
+	// This check is OS-dependent but covers common cases for Linux/macOS.
+	return strings.Contains(err.Error(), "broken pipe")
+}
+
+func init() {
+	rootCmd.Flags().StringVar(&completionShell, "completion", "", "Generate completion script for a specified shell (bash|zsh|fish|powershell)")
+	rootCmd.Flags().StringSliceVarP(&extensions, "extension", "e", nil, "Filter by file extensions (e.g., 'py', 'js' or 'py js'). Can be repeated.")
+	rootCmd.Flags().StringSliceVar(&excludePatterns, "not", nil, "Exclude files matching glob patterns. Can be repeated.")
+	rootCmd.Flags().BoolVarP(&withLineNumbers, "with-line-numbers", "n", false, "Include line numbers for each file.")
+	rootCmd.Flags().BoolVar(&hidden, "hidden", false, "Include hidden files and directories.")
+	rootCmd.Flags().BoolVarP(&listOnly, "list", "l", false, "List the files that would be processed, without printing content.")
+	rootCmd.Flags().BoolVarP(&toClipboard, "clipboard", "c", false, "Copy the output to the clipboard instead of printing to stdout.")
+	rootCmd.Flags().BoolVarP(&noHeader, "no-header", "N", false, "Do not print the header and footer.")
+}
+
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "pcat: %v\n", err)
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	var extensions, excludePatterns []string
-	var withLineNumbers, hidden, listOnly, toClipboard, noHeader bool
-
-	pflag.StringSliceVarP(&extensions, "extension", "e", nil, "Filter by file extensions (e.g., 'py', 'js' or 'py js'). Can be repeated.")
-	pflag.StringSliceVar(&excludePatterns, "not", nil, "Exclude files matching glob patterns. Can be repeated.")
-	pflag.BoolVarP(&withLineNumbers, "with-line-numbers", "n", false, "Include line numbers for each file.")
-	pflag.BoolVar(&hidden, "hidden", false, "Include hidden files and directories.")
-	pflag.BoolVarP(&listOnly, "list", "l", false, "List the files that would be processed, without printing content.")
-	pflag.BoolVarP(&toClipboard, "clipboard", "c", false, "Copy the output to the clipboard instead of printing to stdout.")
-	pflag.BoolVarP(&noHeader, "no-header", "N", false, "Do not print the header and footer.")
-
-	pflag.Usage = printUsage
-	pflag.Parse()
-
+func run(args []string) error {
 	var processedExtensions []string
 	for _, ext := range extensions {
 		processedExtensions = append(processedExtensions, strings.Fields(ext)...)
 	}
 	extensions = processedExtensions
 
-	paths, err := getPaths(pflag.Args())
+	paths, err := getPaths(args)
 	if err != nil {
 		return err
 	}
@@ -96,45 +152,4 @@ func run() error {
 	}
 
 	return nil
-}
-
-func getPaths(args []string) ([]string, error) {
-	if len(args) > 0 {
-		return args, nil
-	}
-
-	stat, _ := os.Stdin.Stat()
-	if (stat.Mode() & os.ModeCharDevice) == 0 {
-		paths := make([]string, 0)
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line != "" {
-				paths = append(paths, line)
-			}
-		}
-		return paths, scanner.Err()
-	}
-
-	return nil, nil
-}
-
-func isBrokenPipe(err error) bool {
-	// This check is OS-dependent but covers common cases for Linux/macOS.
-	return strings.Contains(err.Error(), "broken pipe")
-}
-
-func printUsage() {
-	out := os.Stderr
-	fmt.Fprintf(out, "Usage: %s [OPTIONS] [PATH...]\n", os.Args[0])
-	fmt.Fprintln(out, "Concatenate and print files from specified paths (files and directories).")
-	fmt.Fprintln(out, "If no paths are provided, paths are read from stdin.")
-	fmt.Fprintln(out, "\nOptions:")
-	pflag.PrintDefaults()
-	fmt.Fprintln(out, "\nExamples:")
-	fmt.Fprintln(out, "  pcat ./src ./README.md    # Process all files in ./src and the specific file")
-	fmt.Fprintln(out, "  pcat ./src -e 'py js'     # Process .py and .js files in ./src")
-	fmt.Fprintln(out, "  pcat . --hidden           # Process all files in current dir, including hidden ones")
-	fmt.Fprintln(out, "  pcat ./src --not '*_test.py' # Exclude test files")
-	fmt.Fprintln(out, "  fd . -e py | pcat         # Process python files found by fd from stdin")
 }

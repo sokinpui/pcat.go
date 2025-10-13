@@ -22,11 +22,21 @@ Options:
 
 Examples:
   pcat ./src ./README.md    # Process all files in ./src and the specific file
-  pcat ./src -e py -e js     # Process .py and .js files in ./src
+  pcat ./src -e 'py js'     # Process .py and .js files in ./src
   pcat . --hidden           # Process all files in current dir, including hidden ones
   pcat ./src --not '*_test.py' # Exclude test files
   fd . -e py | pcat         # Process python files found by fd from stdin
 
+```
+
+# Shell Completion
+
+`pcat` supports generating completion scripts for Bash, Zsh, Fish, and PowerShell.
+
+Use the `pcat --completion [shell]` flag. For example, to enable completion for Bash, add the following to your `.bashrc` or `.bash_profile`:
+
+```sh
+source <(pcat --completion bash)
 ```
 
 # Installatoin

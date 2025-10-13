@@ -50,11 +50,18 @@ func Read(files []string, config Config) (string, error) {
 
 		out.WriteString(fmt.Sprintf("`%s`\n", file))
 
-		ext := strings.TrimPrefix(filepath.Ext(file), ".")
-		if ext == "" {
-			ext = "txt"
+		lang := strings.TrimPrefix(filepath.Ext(file), ".")
+		if lang == "" {
+			lang = "txt"
 		}
-		out.WriteString(fmt.Sprintf("```%s\n", ext))
+
+		fence := "```"
+		if lang == "md" || lang == "markdown" {
+			fence = "````"
+			lang = "markdown"
+		}
+
+		out.WriteString(fmt.Sprintf("%s%s\n", fence, lang))
 
 		if config.WithLineNumbers {
 			scanner := bufio.NewScanner(strings.NewReader(string(content)))
@@ -68,7 +75,7 @@ func Read(files []string, config Config) (string, error) {
 		if len(content) > 0 && !strings.HasSuffix(string(content), "\n") {
 			out.WriteString("\n")
 		}
-		out.WriteString("```\n\n")
+		out.WriteString(fmt.Sprintf("%s\n\n", fence))
 	}
 
 	if filesFormatted == 0 {

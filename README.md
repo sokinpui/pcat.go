@@ -1,6 +1,10 @@
 golang rewrite of python [pcat](https://github.com/sokinpui/pcat)
 
-# pcat - find Project/ | xargs cat
+# pcat: code to prompt
+
+```sh
+find Project/ | xargs cat
+```
 
 A tool to print source code from multiple directories and files in markdown format.
 

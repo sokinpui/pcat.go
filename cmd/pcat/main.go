@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	extensions, excludePatterns []string
-	withLineNumbers, hidden, listOnly, toClipboard, noHeader bool
-	completionShell                                          string
+	extensions, excludePatterns                    []string
+	withLineNumbers, hidden, listOnly, toClipboard bool
+	completionShell                                string
 )
 
 var rootCmd = &cobra.Command{
@@ -80,7 +80,6 @@ func init() {
 	rootCmd.Flags().BoolVar(&hidden, "hidden", false, "Include hidden files and directories.")
 	rootCmd.Flags().BoolVarP(&listOnly, "list", "l", false, "List the files that would be processed, without printing content.")
 	rootCmd.Flags().BoolVarP(&toClipboard, "clipboard", "c", false, "Copy the output to the clipboard instead of printing to stdout.")
-	rootCmd.Flags().BoolVarP(&noHeader, "no-header", "N", false, "Do not print the header and footer.")
 }
 
 func main() {
@@ -131,7 +130,6 @@ func run(args []string) error {
 		Hidden:          hidden,
 		ListOnly:        listOnly,
 		ToClipboard:     toClipboard,
-		NoHeader:        noHeader,
 	}
 
 	app := pcat.New(config)

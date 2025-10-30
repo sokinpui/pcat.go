@@ -31,7 +31,6 @@ func main() {
 		Extensions:      []string{"go"},
 		ExcludePatterns: []string{"go.mod"},
 		WithLineNumbers: true,
-		NoHeader:        true,
 	}
 
 	// 2. Create a new pcat application instance and run it.
@@ -71,7 +70,6 @@ This struct allows you to customize how files are discovered and formatted. Key 
 - `Extensions`: A list of file extensions to filter by (e.g., "go", "md").
 - `ExcludePatterns`: A list of glob patterns to exclude matching files.
 - `WithLineNumbers`: A boolean to toggle line numbers in the output.
-- `NoHeader`: A boolean to omit the default header and footer from the output.
 
 ### `pcat.New(config)`
 

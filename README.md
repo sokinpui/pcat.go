@@ -20,7 +20,6 @@ Options:
   -e, --extension strings   Filter by file extensions (e.g., 'py', 'js'). Can be repeated.
       --hidden              Include hidden files and directories.
   -l, --list                List the files that would be processed, without printing content.
-  -N, --no-header           Do not print the header and footer.
       --not strings         Exclude files matching glob patterns. Can be repeated.
   -n, --with-line-numbers   Include line numbers for each file.
 

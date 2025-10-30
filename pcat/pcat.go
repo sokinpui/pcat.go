@@ -22,7 +22,6 @@ type Config struct {
 	Hidden          bool
 	ListOnly        bool
 	ToClipboard     bool
-	NoHeader        bool
 }
 
 // Read reads a list of files and returns a formatted string with their contents.
@@ -32,9 +31,6 @@ func Read(files []string, config Config) (string, error) {
 	}
 
 	var out strings.Builder
-	if !config.NoHeader {
-		out.WriteString("# PROJECT SOURCE CODE\n\n")
-	}
 	filesFormatted := 0
 
 	for _, file := range files {
@@ -80,10 +76,6 @@ func Read(files []string, config Config) (string, error) {
 
 	if filesFormatted == 0 {
 		return "", nil
-	}
-
-	if config.NoHeader {
-		return strings.TrimRight(out.String(), "\n") + "\n", nil
 	}
 
 	result := strings.TrimSuffix(out.String(), "\n")
